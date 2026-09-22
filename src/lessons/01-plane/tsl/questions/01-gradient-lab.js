@@ -41,7 +41,7 @@ export const diagonalGradient = Fn(() => {
 export const twoColorGradient = Fn(() => {
   const coords = uv()
 
-  return mix(colorRed, colorBlue, coords.x)
+  return TODO_PLACEHOLDER
 })
 
 // Quelle operation peut-on appeler pour "ecraser" une courbe ?

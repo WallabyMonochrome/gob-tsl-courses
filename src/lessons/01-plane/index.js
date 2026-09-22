@@ -8,7 +8,8 @@ import {
 } from 'three/webgpu'
 import { Fn, mix, texture, uv, vec3 } from 'three/tsl'
 
-import { exercises, findEffect, findExercise } from './tsl/index.js'
+import { createExerciseSelector } from '../exercise-selector.js'
+import { registry } from './tsl/index.js'
 
 const STORAGE_KEY = '01-plane:selection'
 
@@ -39,19 +40,6 @@ function loadTarget(url, onMissing) {
   }
 
   return textures.get(url)
-}
-
-// la selection survit au reload declenche par Vite a chaque sauvegarde
-function restoreSelection() {
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-  const exercise = findExercise(saved.exercise)
-
-  return {
-    exercise: exercise?.id ?? null,
-    effect: exercise?.effects.some((effect) => effect.id === saved.effect)
-      ? saved.effect
-      : exercise?.effects[0]?.id ?? null,
-  }
 }
 
 function createLabel(text) {
@@ -89,10 +77,8 @@ export default {
       { element: createLabel('Your code'), mesh: student },
     ]
 
-    const state = restoreSelection()
-
-    const apply = () => {
-      const effect = findEffect(state.exercise, state.effect)
+    const apply = (state) => {
+      const effect = registry.findEffect(state.exercise, state.effect)
 
       studentMaterial.colorNode = effect?.question ? effect.question() : missingTarget()
       studentMaterial.needsUpdate = true
@@ -101,36 +87,13 @@ export default {
       if (effect?.solution) {
         targetMaterial.colorNode = effect.solution()
       } else {
-        const map = effect ? loadTarget(effect.target, apply) : null
+        const map = effect ? loadTarget(effect.target, () => apply(state)) : null
         targetMaterial.colorNode = map ? texture(map) : missingTarget()
       }
       targetMaterial.needsUpdate = true
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     }
 
-    const effectOptionsOf = (exercise) =>
-      Object.fromEntries(exercise.effects.map((effect) => [effect.id, effect.id]))
-
-    gui
-      .add(state, 'exercise', Object.fromEntries(exercises.map((item) => [item.label, item.id])))
-      .name('Exercise')
-      .onChange(() => {
-        const exercise = findExercise(state.exercise)
-
-        state.effect = exercise?.effects[0]?.id ?? null
-        // options() remplace la liste sur place, le controller garde sa position
-        effectController.options(effectOptionsOf(exercise))
-
-        apply()
-      })
-
-    const effectController = gui
-      .add(state, 'effect', effectOptionsOf(findExercise(state.exercise)))
-      .name('Effect')
-      .onChange(apply)
-
-    apply()
+    createExerciseSelector({ gui, registry, storageKey: STORAGE_KEY, onChange: apply })
 
     const position = new Vector3()
 

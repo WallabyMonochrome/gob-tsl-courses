@@ -1,0 +1,59 @@
+:root {
+  --bg: #111418;
+  --panel: rgba(20, 24, 30, 0.82);
+  --text: #e7ecf2;
+  --muted: #8a94a3;
+  --accent: #4ade80;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+#webgpu {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#lesson-description {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  max-width: 340px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.lil-gui {
+  --background-color: var(--panel);
+  --widget-color: rgba(255, 255, 255, 0.08);
+  --focus-color: rgba(255, 255, 255, 0.14);
+  --number-color: var(--accent);
+  --string-color: var(--accent);
+}
+
+.plane-label {
+  position: fixed;
+  transform: translate(-50%, 0);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none;
+  user-select: none;
+}

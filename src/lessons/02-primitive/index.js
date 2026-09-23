@@ -6,7 +6,17 @@ import { registry } from './tsl/index.js'
 
 const STORAGE_KEY = '02-primitive:selection'
 
-const NODE_SLOTS = ['positionNode', 'colorNode', 'normalNode', 'aoNode', 'roughnessNode', 'metalnessNode']
+const NODE_SLOTS = [
+  'positionNode',
+  'colorNode',
+  'normalNode',
+  'aoNode',
+  'roughnessNode',
+  'metalnessNode',
+  'emissiveNode',
+  'opacityNode',
+  'outputNode',
+]
 
 const CAMERA_DISTANCE = 2.8
 
@@ -30,24 +40,46 @@ export default {
     const previousCameraZ = camera.position.z
     camera.position.set(0, 0, CAMERA_DISTANCE)
 
+    // un exercice peut demander une rotation continue pour comparer local / world / view
+    const motion = { spin: 0 }
+
+    let debug = null
+
     const apply = (state) => {
       const effect = registry.findEffect(state.exercise, state.effect)
 
-      const result = effect?.question ? effect.question() : vec3(0.02, 0.02, 0.03)
+      debug?.destroy()
+      debug = gui.addFolder('Debug')
+
+      // on repart d'une scene neutre : l'exercice repose ce dont il a besoin
+      motion.spin = 0
+      mesh.position.set(0, 0, 0)
+      mesh.rotation.set(0, 0, 0)
+
+      const context = { gui: debug, mesh, geometry, material, motion, rebuild: () => apply(state) }
+
+      // un exercice ecrit en Fn() ne prend que des nodes, une fabrique JS recoit le contexte
+      const result = effect?.question?.isFn ? effect.question() : effect?.question?.(context)
 
       // un exercice rend soit une simple couleur, soit un jeu de nodes PBR
-      const nodes = result?.isNode ? { colorNode: result } : result
+      const nodes = result?.isNode ? { colorNode: result } : result ?? { colorNode: vec3(0.02, 0.02, 0.03) }
 
       // on remet a null ce que l'exercice precedent avait pose
       for (const slot of NODE_SLOTS) material[slot] = nodes[slot] ?? null
+      material.transparent = Boolean(nodes.opacityNode)
       material.needsUpdate = true
+
+      if (debug.children.length === 0) {
+        debug.destroy()
+        debug = null
+      }
     }
 
     createExerciseSelector({ gui, registry, storageKey: STORAGE_KEY, onChange: apply })
 
     return {
       update({ delta }) {
-        //mesh.rotation.y += delta * 0.3
+        mesh.rotation.y += motion.spin * delta
       },
 
       dispose() {

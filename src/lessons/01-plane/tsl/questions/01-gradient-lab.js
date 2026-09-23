@@ -23,7 +23,7 @@ export const rgbGradient = Fn(() => {
 export const horizontalGradient = Fn(() => {
   const coords = uv()
 
-  return TODO_PLACEHOLDER
+  return vec3(1, 0, 0);
 })
 
 export const verticalGradient = Fn(() => {

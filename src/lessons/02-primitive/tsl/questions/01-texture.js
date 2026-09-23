@@ -25,6 +25,7 @@ const TILING = vec2(6, 3)
 export const brickWall = () => {
     const coords = uv().mul(TILING)
 
+    // ARM : occlusion dans le rouge, rugosite dans le vert, metal dans le bleu
     const armSample = texture(arm, coords)
 
     return {
